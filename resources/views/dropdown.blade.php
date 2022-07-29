@@ -43,7 +43,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     <script>
-        $('#country-dropdown').on('change', function() {
+        // country city state | start
+    $('#country-dropdown').on('change', function() {
             var id = $(this).val();
             // alert(id);
             $.ajax({
@@ -52,19 +53,55 @@
                 data: {
                     'id': id
                 },
+                beforeSend: function(){
+                    $("#preloader").show()
+                },
                 success: function(response) {
-                    console.log(response.clients);
-                    $("#pageloader").hide()
+                    $("#preloader").hide()
+                    // $("#state-dropdown option:first").attr('selected','selected');
                     $('#state-dropdown').html('');
                     $('#city-dropdown').html('');
-                    if (response != '') {
-                        $.each(response.clients, function(value, i) {
-                            console.log(response);
+                    if (response.status == 200) {
+
+                        // console.log(response);
+                        $.each(response.states, function(value, i) {
+                            // console.log(response);
+
                             $('#state-dropdown').append('<option value ="' + i.id + '">' + i.name +
                                 '</option>');
-                        });
+
+
+                                if(value == 0){
+                                // console.log(i.id);
+                                $.ajax({
+                                        type: "GET",
+                                        url: '{{ url('fetch-city') }}',
+                                        data: {
+                                            'id': i.id
+                                        },
+                                        success: function(response) {
+                                            if (response.status == 200) {
+                                                // alert("200")
+                                                // console.log(response)
+                                                $('#city-dropdown').html('');
+                                                $.each(response.cities, function(index, val) {
+                                                    // console.log(response);
+                                                    $('#city-dropdown').append('<option value="' + val.id + '">' + val.name +
+                                                        '</option>');
+                                                });
+                                            }else {
+                                                $('#city-dropdown').html('');
+                                                $('#city-dropdown').append('<option>City Not Found!</option>');
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+
+
                     } else {
-                        $('#state-dropdown').append('<h3>No City Found</h3>');
+                        $("#state-dropdown").html("");
+                        $('#state-dropdown').append('<option>State Not Found</option>');
                     }
                 }
             });
@@ -72,31 +109,37 @@
 
         $('#state-dropdown').on('change', function() {
             var id = $(this).val();
-            // alert(id);
+            // $("#state-dropdown").click();
+
             $.ajax({
                 type: "GET",
                 url: '{{ url('fetch-city') }}',
                 data: {
                     'id': id
                 },
-                // dataType: 'json',
-                //  cache: false,
+                beforeSend: function(){
+                    $("#preloader").show()
+                },
                 success: function(response) {
-                    console.log(response.clients);
-                    $("#pageloader").hide()
-                    $('#city-dropdown').html('');
-                    if (response != '') {
-                        $.each(response.clients, function(value, i) {
-                            console.log(response);
+                    $("#preloader").hide();
+
+                    if (response.status == 200) {
+                        // alert("200")
+                        // console.log(response)
+                        $('#city-dropdown').html('');
+                        $.each(response.cities, function(value, i) {
+                            // console.log(response);
                             $('#city-dropdown').append('<option value ="' + i.id + '">' + i.name +
                                 '</option>');
                         });
-                    } else {
-                        $('#city-dropdown').append('<h3>No City Found</h3>');
+                    }else {
+                        $('#city-dropdown').html('');
+                        $('#city-dropdown').append('<option>City Not Found!</option>');
                     }
                 }
             });
         });
+// country city state | end
     </script>
         </body>
 </html>
